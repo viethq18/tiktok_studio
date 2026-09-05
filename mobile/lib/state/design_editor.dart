@@ -30,9 +30,18 @@ class DesignEditor extends ChangeNotifier {
   bool _inFlight = false;
 
   Future<void> load() async {
-    final view = await api.client.getDesign(carouselId);
-    design = view.design;
-    version = view.version;
+    try {
+      final view = await api.client.getDesign(carouselId);
+      design = view.design;
+      version = view.version;
+      error = null;
+    } on ApiException catch (e) {
+      error = e.code;
+    } catch (_) {
+      // Offline, DNS failure, anything else: the screen shows an error state
+      // rather than letting the future fail silently.
+      error = 'network';
+    }
     notifyListeners();
   }
 

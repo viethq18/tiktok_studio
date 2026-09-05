@@ -13,7 +13,7 @@ chữ; không có editor canvas đầy đủ — xem mục 3.
 |---|---|
 | Màn hình | Sign in · Projects · New project · Carousels · New carousel + tiến trình · Carousel detail (slides / caption) · Slide images · Sửa chữ |
 | API client | **Sinh tự động** từ struct Go — 37 method, 52 model |
-| Test | 25 test pass · `flutter analyze` sạch |
+| Test | 28 test pass · `flutter analyze` sạch |
 | iOS | Build và chạy được trên simulator (đã kiểm chứng: auth, danh sách project với dữ liệu thật) |
 | Android | Chưa chạy thử |
 
@@ -95,6 +95,13 @@ thứ bạn kéo đúng là thứ được export.
 - **Chưa có màn hình project settings** (brand kit, chiến lược AI) — làm trên web.
 
 ### 4.3 Bug đã sửa — giữ lại để biết vì sao code viết như vậy
+
+**Không back được từ màn hình slide (đã sửa).** `PageView` cuộn ngang phủ kín
+chiều rộng nên nuốt luôn cử chỉ vuốt-từ-mép-trái mà iOS dùng để back. Sửa bằng
+cách chừa 20pt hai bên để mép trái thuộc về route chứ không thuộc PageView.
+`test/navigation_test.dart` kiểm tra nút back tồn tại **và** thực sự pop được,
+kể cả khi tải design thất bại — màn hình cụt là loại bug không crash nên rất dễ
+lọt.
 
 **Slide viewer bị lệch (đã sửa).** `SlidePreview` tính `scale` chỉ theo chiều
 cao (`maxHeight / canvas.height`). Trên khung hẹp của `PageView`, slide rộng hơn

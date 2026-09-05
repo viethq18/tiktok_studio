@@ -21,7 +21,11 @@ import 'slide_images.dart';
 /// so the app covers review, image swaps, caption and export, and hands off to
 /// the web for fine editing.
 class CarouselDetailScreen extends StatefulWidget {
-  const CarouselDetailScreen({super.key, required this.api, required this.carouselId});
+  const CarouselDetailScreen({
+    super.key,
+    required this.api,
+    required this.carouselId,
+  });
 
   final Api api;
   final String carouselId;
@@ -44,7 +48,9 @@ class _CarouselDetailScreenState extends State<CarouselDetailScreen> {
             tooltip: s.openOnWeb,
             icon: const Icon(Icons.open_in_new, size: 20),
             onPressed: () => launchUrl(
-              Uri.parse('${Api.baseUrl.replaceFirst(':8080', ':3000')}/carousels/${widget.carouselId}'),
+              Uri.parse(
+                '${Api.baseUrl.replaceFirst(':8080', ':3000')}/carousels/${widget.carouselId}',
+              ),
               mode: LaunchMode.externalApplication,
             ),
           ),
@@ -54,7 +60,10 @@ class _CarouselDetailScreenState extends State<CarouselDetailScreen> {
         selectedIndex: _tab,
         onDestinationSelected: (i) => setState(() => _tab = i),
         destinations: [
-          NavigationDestination(icon: const Icon(Icons.view_carousel_outlined), label: s.slides),
+          NavigationDestination(
+            icon: const Icon(Icons.view_carousel_outlined),
+            label: s.slides,
+          ),
           NavigationDestination(icon: const Icon(Icons.tag), label: s.caption),
         ],
       ),
@@ -65,7 +74,11 @@ class _CarouselDetailScreenState extends State<CarouselDetailScreen> {
                 carouselId: widget.carouselId,
                 strings: s,
               )
-            : _CaptionTab(api: widget.api, carouselId: widget.carouselId, strings: s),
+            : _CaptionTab(
+                api: widget.api,
+                carouselId: widget.carouselId,
+                strings: s,
+              ),
       ),
     );
   }
@@ -87,8 +100,10 @@ class _SlidesTab extends StatefulWidget {
 }
 
 class _SlidesTabState extends State<_SlidesTab> {
-  late final DesignEditor _editor =
-      DesignEditor(api: widget.api, carouselId: widget.carouselId);
+  late final DesignEditor _editor = DesignEditor(
+    api: widget.api,
+    carouselId: widget.carouselId,
+  );
   final _pages = PageController(viewportFraction: 0.82);
   bool _editing = false;
   bool _loading = true;
@@ -119,7 +134,8 @@ class _SlidesTabState extends State<_SlidesTab> {
     final updated = await showModalBottomSheet<DesignElement>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => TextEditorSheet(element: element, strings: widget.strings),
+      builder: (_) =>
+          TextEditorSheet(element: element, strings: widget.strings),
     );
     if (updated != null) _editor.updateElement(slide.id, updated);
   }
@@ -145,40 +161,47 @@ class _SlidesTabState extends State<_SlidesTab> {
           }),
         ),
         Expanded(
-          child: PageView.builder(
-            controller: _pages,
-            // While editing, horizontal drags move text rather than turn pages.
-            physics: _editing
-                ? const NeverScrollableScrollPhysics()
-                : const PageScrollPhysics(),
-            onPageChanged: (i) => setState(() => _page = i),
-            itemCount: slides.length,
-            itemBuilder: (context, i) => Padding(
-              padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
-              child: SlidePreview(
-                slide: slides[i],
-                canvas: design.canvas,
-                index: i + 1,
-                total: slides.length,
-                editing: _editing,
-                selectedElementId: _editor.selectedElementId,
-                onSelect: _editor.select,
-                onMove: (element, dx, dy) =>
-                    _editor.moveBy(slides[i].id, element, dx, dy),
-                onEditText: (element) => _editText(slides[i], element),
-                onChangeImage: () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => SlideImagesScreen(
-                        api: widget.api,
-                        carouselId: widget.carouselId,
-                        slide: slides[i],
+          // The left inset keeps the screen edge clear of the PageView so iOS's
+          // swipe-from-edge back gesture still reaches the route; a full-width
+          // horizontal scroller swallows it. Mirrored on the right to keep the
+          // carousel centred.
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: PageView.builder(
+              controller: _pages,
+              // While editing, horizontal drags move text rather than turn pages.
+              physics: _editing
+                  ? const NeverScrollableScrollPhysics()
+                  : const PageScrollPhysics(),
+              onPageChanged: (i) => setState(() => _page = i),
+              itemCount: slides.length,
+              itemBuilder: (context, i) => Padding(
+                padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
+                child: SlidePreview(
+                  slide: slides[i],
+                  canvas: design.canvas,
+                  index: i + 1,
+                  total: slides.length,
+                  editing: _editing,
+                  selectedElementId: _editor.selectedElementId,
+                  onSelect: _editor.select,
+                  onMove: (element, dx, dy) =>
+                      _editor.moveBy(slides[i].id, element, dx, dy),
+                  onEditText: (element) => _editText(slides[i], element),
+                  onChangeImage: () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => SlideImagesScreen(
+                          api: widget.api,
+                          carouselId: widget.carouselId,
+                          slide: slides[i],
+                        ),
                       ),
-                    ),
-                  );
-                  await _editor.load();
-                },
-                strings: s,
+                    );
+                    await _editor.load();
+                  },
+                  strings: s,
+                ),
               ),
             ),
           ),
@@ -194,17 +217,21 @@ class _SlidesTabState extends State<_SlidesTab> {
                       ? null
                       : () => _pages.previousPage(
                           duration: const Duration(milliseconds: 200),
-                          curve: Curves.easeOut),
+                          curve: Curves.easeOut,
+                        ),
                   icon: const Icon(Icons.chevron_left),
                 ),
-                Text('${_page + 1} / ${slides.length}',
-                    style: const TextStyle(color: AppColors.body)),
+                Text(
+                  '${_page + 1} / ${slides.length}',
+                  style: const TextStyle(color: AppColors.body),
+                ),
                 IconButton(
                   onPressed: _page >= slides.length - 1
                       ? null
                       : () => _pages.nextPage(
                           duration: const Duration(milliseconds: 200),
-                          curve: Curves.easeOut),
+                          curve: Curves.easeOut,
+                        ),
                   icon: const Icon(Icons.chevron_right),
                 ),
               ],
@@ -213,7 +240,10 @@ class _SlidesTabState extends State<_SlidesTab> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
           child: _ExportButton(
-              api: widget.api, carouselId: widget.carouselId, strings: s),
+            api: widget.api,
+            carouselId: widget.carouselId,
+            strings: s,
+          ),
         ),
       ],
     );
@@ -239,8 +269,8 @@ class _EditBar extends StatelessWidget {
     final status = editor.saving
         ? strings.saving
         : editor.conflictReloaded
-            ? strings.reloaded
-            : '';
+        ? strings.reloaded
+        : '';
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
       child: Row(
@@ -254,8 +284,10 @@ class _EditBar extends StatelessWidget {
           if (!editing && status.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(right: 8),
-              child: Text(status,
-                  style: const TextStyle(color: AppColors.muted, fontSize: 12)),
+              child: Text(
+                status,
+                style: const TextStyle(color: AppColors.muted, fontSize: 12),
+              ),
             ),
           TextButton.icon(
             onPressed: onToggle,
@@ -269,7 +301,11 @@ class _EditBar extends StatelessWidget {
 }
 
 class _ExportButton extends StatefulWidget {
-  const _ExportButton({required this.api, required this.carouselId, required this.strings});
+  const _ExportButton({
+    required this.api,
+    required this.carouselId,
+    required this.strings,
+  });
 
   final Api api;
   final String carouselId;
@@ -328,22 +364,31 @@ class _ExportButtonState extends State<_ExportButton> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      FilledButton.icon(
-        onPressed: _busy ? null : _export,
-        icon: _busy
-            ? const SizedBox(
-                height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2))
-            : const Icon(Icons.ios_share, size: 18),
-        label: Text(_busy ? widget.strings.exporting : widget.strings.export),
-      ),
-      ErrorNote(_error),
-    ]);
+    return Column(
+      children: [
+        FilledButton.icon(
+          onPressed: _busy ? null : _export,
+          icon: _busy
+              ? const SizedBox(
+                  height: 16,
+                  width: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.ios_share, size: 18),
+          label: Text(_busy ? widget.strings.exporting : widget.strings.export),
+        ),
+        ErrorNote(_error),
+      ],
+    );
   }
 }
 
 class _CaptionTab extends StatefulWidget {
-  const _CaptionTab({required this.api, required this.carouselId, required this.strings});
+  const _CaptionTab({
+    required this.api,
+    required this.carouselId,
+    required this.strings,
+  });
 
   final Api api;
   final String carouselId;
@@ -387,7 +432,9 @@ class _CaptionTabState extends State<_CaptionTab> {
   }
 
   Future<void> _regenerate() async {
-    setState(() => _future = widget.api.client.regenerateCaption(widget.carouselId));
+    setState(
+      () => _future = widget.api.client.regenerateCaption(widget.carouselId),
+    );
     _loadedAt = null;
   }
 
@@ -438,9 +485,11 @@ class _CaptionTabState extends State<_CaptionTab> {
             const SizedBox(height: 20),
             FilledButton.icon(
               onPressed: () async {
-                await Clipboard.setData(ClipboardData(
-                  text: '${_controller.text}\n\n${_hashtags.join(' ')}',
-                ));
+                await Clipboard.setData(
+                  ClipboardData(
+                    text: '${_controller.text}\n\n${_hashtags.join(' ')}',
+                  ),
+                );
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context)
                     .showSnackBar(SnackBar(content: Text(s.copied)));

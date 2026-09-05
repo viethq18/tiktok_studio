@@ -5,7 +5,7 @@ one sentence; the platform researches the topic, writes the slides, picks a
 narrative formula, lays out the design, finds photography, and hands you an
 editable canvas and a ZIP of PNGs.
 
-Implementation of `PRODUCT_TECHNICAL_PLAN.md`. Section references (§) below
+Implementation of [`docs/PRODUCT_TECHNICAL_PLAN.md`](docs/PRODUCT_TECHNICAL_PLAN.md). Section references (§) below
 point back at that document.
 
 ---

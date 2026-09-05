@@ -6,7 +6,7 @@ Cập nhật: 2026-09-05 · Go 1.27 · ~9.500 dòng · `backend/`
 
 ## 1. Tóm tắt
 
-Toàn bộ pipeline MVP theo `PRODUCT_TECHNICAL_PLAN.md` đã chạy end-to-end:
+Toàn bộ pipeline MVP theo [`PRODUCT_TECHNICAL_PLAN.md`](PRODUCT_TECHNICAL_PLAN.md) đã chạy end-to-end:
 login → project → dynamic schema → generate (async) → design → images → autosave
 → export ZIP. `make smoke` đi hết luồng này mỗi lần chạy.
 

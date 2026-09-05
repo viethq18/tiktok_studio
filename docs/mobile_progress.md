@@ -13,7 +13,7 @@ chữ; không có editor canvas đầy đủ — xem mục 3.
 |---|---|
 | Màn hình | Sign in · Projects · New project · Carousels · New carousel + tiến trình · Carousel detail (slides / caption) · Slide images · Sửa chữ |
 | API client | **Sinh tự động** từ struct Go — 37 method, 52 model |
-| Test | 28 test pass · `flutter analyze` sạch |
+| Test | 31 widget test + 1 integration test trên simulator · `flutter analyze` sạch |
 | iOS | Build và chạy được trên simulator (đã kiểm chứng: auth, danh sách project với dữ liệu thật) |
 | Android | Chưa chạy thử |
 
@@ -96,6 +96,23 @@ thứ bạn kéo đúng là thứ được export.
 
 ### 4.3 Bug đã sửa — giữ lại để biết vì sao code viết như vậy
 
+**Nút tìm ảnh chết sau lần đầu (đã sửa).** `SlideImagesScreen` chỉ bắt
+`ApiException`; bất kỳ lỗi nào khác để `_loading` kẹt `true` **vĩnh viễn** →
+cả nút search lẫn nút tìm thêm đều bị disable, không báo gì. Cùng lỗi ở
+`_applying` khi chọn ảnh thất bại: mọi ô ảnh thành không bấm được. Giờ mọi lời
+gọi mạng đi qua một helper có `finally`.
+
+Kèm theo hai lỗi khiến nó *trông như* search hỏng: nút dưới cùng ghi "Tìm ảnh"
+nhưng thực ra là *tải thêm trang sau* — gõ từ khoá mới rồi bấm nó sẽ nối kết quả
+của truy vấn cũ vào cuối danh sách, ngoài tầm nhìn. Giờ ghi "Tìm thêm ảnh". Và
+`_page` bị reset về 1 khi response thiếu trường `page`, nên "tìm thêm" lấy lại
+đúng trang cũ.
+
+**Dùng `DesignEditor` sau khi dispose (đã sửa).** Rời màn hình carousel trong lúc
+autosave đang chạy thì `save()` gọi `notifyListeners()` trên object đã huỷ.
+`dispose()` giờ tự flush bản chưa lưu và không notify nữa. Lỗi này do
+integration test tìm ra, không phải widget test.
+
 **Không back được từ màn hình slide (đã sửa).** `PageView` cuộn ngang phủ kín
 chiều rộng nên nuốt luôn cử chỉ vuốt-từ-mép-trái mà iOS dùng để back. Sửa bằng
 cách chừa 20pt hai bên để mép trái thuộc về route chứ không thuộc PageView.
@@ -139,7 +156,23 @@ cần quyền Accessibility. Các phần đó được phủ bằng widget test 
 
 ---
 
-## 6. Chạy
+## 6. Test trên máy thật
+
+`integration_test/` chạy trên simulator/thiết bị với backend sống, bấm đúng như
+người dùng. Widget test vẫn xanh trong khi màn hình chọn ảnh hỏng trên máy — nên
+luồng nào quan trọng thì cần cả hai loại.
+
+```bash
+make test-mobile-device     # cần simulator + API đang chạy
+```
+
+Ba lần đo sai đáng nhớ khi viết test cho màn hình này:
+`Scrollable.of(context)` trên chính GridView không tìm ra Scrollable; đếm
+`InkWell` để đo số ảnh thì bão hoà vì grid tái sử dụng widget; và `tester.drag`
+nuốt mất `kTouchSlop` nên delta đo được nhỏ hơn thực tế. Cách đúng: đọc
+`ScrollPosition`, và dùng gesture thủ công khi cần đo chính xác.
+
+## 6b. Chạy
 
 ```bash
 make apigen                       # sinh lại client sau khi đổi struct Go

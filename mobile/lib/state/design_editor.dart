@@ -28,6 +28,13 @@ class DesignEditor extends ChangeNotifier {
 
   Timer? _timer;
   bool _inFlight = false;
+  bool _disposed = false;
+
+  /// Leaving the screen while a save is in flight used to notify listeners
+  /// after disposal. Every notification goes through here instead.
+  void _notify() {
+    if (!_disposed) notifyListeners();
+  }
 
   Future<void> load() async {
     try {
@@ -42,7 +49,7 @@ class DesignEditor extends ChangeNotifier {
       // rather than letting the future fail silently.
       error = 'network';
     }
-    notifyListeners();
+    _notify();
   }
 
   DesignSlide? slideAt(int index) {
@@ -54,7 +61,7 @@ class DesignEditor extends ChangeNotifier {
   void select(String? elementId) {
     if (selectedElementId == elementId) return;
     selectedElementId = elementId;
-    notifyListeners();
+    _notify();
   }
 
   /// Replaces one element and schedules a save.
@@ -73,7 +80,7 @@ class DesignEditor extends ChangeNotifier {
             ]),
       ],
     );
-    notifyListeners();
+    _notify();
     _scheduleSave();
   }
 
@@ -105,7 +112,7 @@ class DesignEditor extends ChangeNotifier {
     _inFlight = true;
     saving = true;
     error = null;
-    notifyListeners();
+    _notify();
     try {
       final saved = await api.client.saveDesign(
         carouselId,
@@ -127,13 +134,30 @@ class DesignEditor extends ChangeNotifier {
     } finally {
       _inFlight = false;
       saving = false;
-      notifyListeners();
+      _notify();
     }
   }
 
+  /// Flushes any pending edit, then tears down. Callers just call dispose():
+  /// asking them to save first invited a save that outlived the object.
   @override
   void dispose() {
     _timer?.cancel();
+    final pending = design;
+    _disposed = true;
+    if (pending != null) unawaited(_flush(pending));
     super.dispose();
+  }
+
+  /// A last save with no state updates, since nothing is listening any more.
+  Future<void> _flush(Design pending) async {
+    try {
+      await api.client.saveDesign(
+        carouselId,
+        SaveDesignRequest(version: version, design: pending),
+      );
+    } catch (_) {
+      // The screen is gone; there is nobody to tell.
+    }
   }
 }

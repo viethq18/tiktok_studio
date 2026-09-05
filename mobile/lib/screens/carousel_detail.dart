@@ -123,8 +123,7 @@ class _SlidesTabState extends State<_SlidesTab> {
   @override
   void dispose() {
     _editor.removeListener(_onEditorChanged);
-    // Never leave an edit unsaved because the screen closed.
-    _editor.save();
+    // dispose() flushes any pending edit itself.
     _editor.dispose();
     _pages.dispose();
     super.dispose();

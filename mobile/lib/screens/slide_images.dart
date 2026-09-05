@@ -47,51 +47,55 @@ class _SlideImagesScreenState extends State<SlideImagesScreen> {
     super.dispose();
   }
 
-  Future<void> _load() async {
-    try {
-      final res = await widget.api.client
-          .getSlideImages(widget.carouselId, widget.slide.id);
-      if (!mounted) return;
-      setState(() {
-        _candidates = res.candidates;
-        _keyword.text = res.query;
-        _loading = false;
-      });
-    } on ApiException catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _error = Strings(Localizations.localeOf(context).languageCode)
-            .error(e.code, e.message);
-      });
-    }
-  }
-
-  Future<void> _search({bool append = false}) async {
+  /// Every network call routes through here so `_loading` is always cleared.
+  ///
+  /// It used to be reset only on success and on ApiException, so anything else —
+  /// a dropped connection, a parse failure — left the flag stuck true, which
+  /// disabled both search buttons for the rest of the screen's life. Nothing
+  /// crashed; the screen just stopped responding.
+  Future<void> _run(Future<void> Function() action) async {
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
+      await action();
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      _error = Strings(Localizations.localeOf(context).languageCode)
+          .error(e.code, e.message);
+    } catch (_) {
+      if (!mounted) return;
+      _error = Strings(Localizations.localeOf(context).languageCode)
+          .somethingWentWrong;
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _load() => _run(() async {
+        final res = await widget.api.client
+            .getSlideImages(widget.carouselId, widget.slide.id);
+        if (!mounted) return;
+        _candidates = res.candidates;
+        _keyword.text = res.query;
+      });
+
+  Future<void> _search({bool append = false}) {
+    final requested = append ? _page + 1 : 1;
+    return _run(() async {
       final res = await widget.api.client.searchSlideImages(
         widget.carouselId,
         widget.slide.id,
-        SearchImagesRequest(query: _keyword.text.trim(), page: append ? _page + 1 : 1),
+        SearchImagesRequest(query: _keyword.text.trim(), page: requested),
       );
       if (!mounted) return;
-      setState(() {
-        _page = res.page ?? 1;
-        _candidates = append ? [..._candidates, ...res.candidates] : res.candidates;
-        _loading = false;
-      });
-    } on ApiException catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _error = Strings(Localizations.localeOf(context).languageCode)
-            .error(e.code, e.message);
-      });
-    }
+      // Trust the page we asked for when the response omits it, otherwise
+      // "find more" would keep re-fetching the same page.
+      _page = res.page ?? requested;
+      _candidates =
+          append ? [..._candidates, ...res.candidates] : res.candidates;
+    });
   }
 
   Future<void> _select(ImagePublicCandidate candidate) async {
@@ -107,11 +111,15 @@ class _SlideImagesScreenState extends State<SlideImagesScreen> {
       if (mounted) Navigator.of(context).pop(true);
     } on ApiException catch (e) {
       if (!mounted) return;
-      setState(() {
-        _applying = false;
-        _error = Strings(Localizations.localeOf(context).languageCode)
-            .error(e.code, e.message);
-      });
+      _error = Strings(Localizations.localeOf(context).languageCode)
+          .error(e.code, e.message);
+    } catch (_) {
+      if (!mounted) return;
+      _error = Strings(Localizations.localeOf(context).languageCode)
+          .somethingWentWrong;
+    } finally {
+      // Without this a failed pick left every tile permanently untappable.
+      if (mounted) setState(() => _applying = false);
     }
   }
 
@@ -198,7 +206,7 @@ class _SlideImagesScreenState extends State<SlideImagesScreen> {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: OutlinedButton(
                 onPressed: _loading ? null : () => _search(append: true),
-                child: Text(s.searchImages),
+                child: Text(_loading ? s.searching : s.searchMore),
               ),
             ),
           ],

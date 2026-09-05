@@ -69,6 +69,8 @@ class Strings {
   String get share => _('Chia sẻ', 'Share');
   String get openOnWeb => _('Mở trên web để chỉnh sâu', 'Open on the web to edit in detail');
   String get searchImages => _('Tìm ảnh', 'Search images');
+  String get searchMore => _('Tìm thêm ảnh', 'Find more images');
+  String get searching => _('Đang tìm…', 'Searching…');
   String get imageKeyword => _('Từ khoá tìm ảnh', 'Image keywords');
   String get retry => _('Thử lại', 'Try again');
   String get edit => _('Sửa', 'Edit');

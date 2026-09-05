@@ -37,6 +37,9 @@ test: ## Run the Go test suite
 test-mobile: ## Run the Flutter test suite
 	cd mobile && flutter test
 
+test-mobile-device: ## Run the on-device tests (needs a simulator and a running API)
+	cd mobile && flutter test integration_test
+
 apigen: ## Regenerate the OpenAPI document and the Dart/TypeScript clients
 	cd backend && go run ./cmd/apigen ..
 

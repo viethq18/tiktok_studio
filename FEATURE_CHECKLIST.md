@@ -1,0 +1,2 @@
+- Build Landing Page cho sản phẩm
+- Build web đa ngôn ngữ, trước mắt support en/vi và có thể easy switch giữa 2 ngôn ngữ này.

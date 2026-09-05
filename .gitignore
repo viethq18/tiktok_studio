@@ -1,0 +1,22 @@
+# dependencies
+node_modules/
+
+# build output
+.next/
+out/
+backend/bin/
+frontend/out/
+
+# secrets — never commit; .env.example documents the shape instead
+.env
+.env.*
+!.env.example
+
+# test artefacts
+frontend/test-results/
+frontend/playwright-report/
+frontend/shots/
+
+# logs and local state
+*.log
+.DS_Store

@@ -24,12 +24,21 @@ worker: ## Run the generation/export worker
 web: ## Run the Next.js app
 	cd frontend && npm run dev
 
+mobile: ## Run the Flutter app (needs a simulator or device)
+	cd mobile && flutter run
+
 build: ## Compile both Go binaries and the Next.js bundle
 	cd backend && go build -o bin/server ./cmd/server && go build -o bin/worker ./cmd/worker
 	cd frontend && npm run build
 
 test: ## Run the Go test suite
 	cd backend && go test ./...
+
+test-mobile: ## Run the Flutter test suite
+	cd mobile && flutter test
+
+apigen: ## Regenerate the OpenAPI document and the Dart/TypeScript clients
+	cd backend && go run ./cmd/apigen ..
 
 golden: ## Rewrite the export renderer's golden slide
 	cd backend && go test ./internal/export -update-golden
@@ -49,4 +58,4 @@ fmt: ## Format Go sources
 reset-db: ## Drop and recreate the database (destructive)
 	docker compose exec -T postgres psql -U tks -d postgres -c "DROP DATABASE IF EXISTS tks;" -c "CREATE DATABASE tks;"
 
-.PHONY: help setup infra infra-down api worker web build test golden smoke e2e e2e-install fmt reset-db
+.PHONY: help setup infra infra-down api worker web mobile build test golden apigen smoke e2e e2e-install fmt reset-db

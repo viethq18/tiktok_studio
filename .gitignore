@@ -12,6 +12,18 @@ frontend/out/
 .env.*
 !.env.example
 
+# flutter
+mobile/build/
+mobile/.dart_tool/
+mobile/ios/Pods/
+mobile/ios/.symlinks/
+mobile/ios/Flutter/Flutter.framework
+mobile/ios/Flutter/Flutter.podspec
+mobile/ios/Flutter/ephemeral/
+mobile/android/.gradle/
+mobile/android/local.properties
+mobile/*.iml
+
 # test artefacts
 frontend/test-results/
 frontend/playwright-report/

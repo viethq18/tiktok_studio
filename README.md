@@ -255,6 +255,28 @@ zoom is a viewport concern (§99, §100).
 
 ---
 
+## Mobile
+
+`mobile/` is a Flutter app for iOS and Android sharing this backend. It has no
+canvas editor: porting Fabric.js would need a *third* text-measurement
+implementation alongside `fontkit` and `measure.ts`, and a phone is where a
+creator publishes rather than designs. The app covers review, image swaps,
+caption editing and export, and links out to the web for fine editing.
+
+Its API client is generated, not written:
+
+```
+backend/internal/apispec/spec.go   ← endpoints declared with the real Go structs
+                │  make apigen
+                ├──► docs/openapi.yaml
+                ├──► mobile/lib/api/generated.dart
+                └──► frontend/types/api.generated.ts
+```
+
+Two guards keep the three clients from drifting: a Go test fails if the checked-in
+output is stale, and `frontend/types/contract.test-d.ts` fails `tsc` if the
+hand-written web types no longer match the backend. See `docs/mobile_progress.md`.
+
 ## Layout
 
 ```

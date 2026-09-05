@@ -246,5 +246,5 @@ export type Registry = {
   languages: ContentLanguage[];
   fonts: { id: string; family: string; css_stack: string; weights: number[]; vietnamese: boolean }[];
   formulas: { id: string; name: string; description: string; structure: string[] }[];
-  presets: { Ratio: string; Width: number; Height: number; Label: string }[];
+  presets: { ratio: string; width: number; height: number; label: string }[];
 };

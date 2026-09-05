@@ -111,10 +111,10 @@ type Overlay struct {
 // Ratio presets (§24). Keeping them in one table means adding Instagram later
 // is a data change, not a code change (§50).
 type Preset struct {
-	Ratio  string
-	Width  int
-	Height int
-	Label  string
+	Ratio  string `json:"ratio"`
+	Width  int    `json:"width"`
+	Height int    `json:"height"`
+	Label  string `json:"label"`
 }
 
 var Presets = []Preset{
